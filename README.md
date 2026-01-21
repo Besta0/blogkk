@@ -68,7 +68,7 @@ npm run preview
 
 ```bash
 # Pull and run from Docker Hub
-docker run -d -p 3000:80 --name blogkk caleb333/blogkk:latest
+docker run -d -p 3030:80 --name blogkk caleb333/blogkk:latest
 
 # View logs
 docker logs -f blogkk
@@ -78,7 +78,7 @@ docker stop blogkk
 docker rm blogkk
 ```
 
-Visit http://localhost:3000
+Visit http://localhost:3030
 
 #### Option 2: Using Docker Compose (Recommended for Development)
 
@@ -93,7 +93,7 @@ docker-compose logs -f
 docker-compose down
 ```
 
-Visit http://localhost:3000
+Visit http://localhost:3030
 
 #### Option 3: Build from Source
 
@@ -102,7 +102,7 @@ Visit http://localhost:3000
 docker build -t blogkk .
 
 # Run container
-docker run -d -p 3000:80 --name blogkk blogkk
+docker run -d -p 3030:80 --name blogkk blogkk
 
 # View logs
 docker logs -f blogkk
@@ -186,7 +186,7 @@ docker-compose up -d
 
 # 3. Configure Nginx reverse proxy (optional)
 # Edit /etc/nginx/sites-available/default
-# Add reverse proxy config pointing to localhost:3000
+# Add reverse proxy config pointing to localhost:3030
 ```
 
 ## 🤝 Contributing
@@ -289,7 +289,7 @@ npm run preview
 
 ```bash
 # 从 Docker Hub 拉取并运行
-docker run -d -p 3000:80 --name blogkk caleb333/blogkk:latest
+docker run -d -p 3030:80 --name blogkk caleb333/blogkk:latest
 
 # 查看日志
 docker logs -f blogkk
@@ -299,7 +299,7 @@ docker stop blogkk
 docker rm blogkk
 ```
 
-访问 http://localhost:3000
+访问 http://localhost:3030
 
 #### 方式二：使用 Docker Compose（推荐用于开发）
 
@@ -314,7 +314,7 @@ docker-compose logs -f
 docker-compose down
 ```
 
-访问 http://localhost:3000
+访问 http://localhost:3030
 
 #### 方式三：从源码构建
 
@@ -323,7 +323,7 @@ docker-compose down
 docker build -t blogkk .
 
 # 运行容器
-docker run -d -p 3000:80 --name blogkk blogkk
+docker run -d -p 3030:80 --name blogkk blogkk
 
 # 查看日志
 docker logs -f blogkk
@@ -407,7 +407,7 @@ docker-compose up -d
 
 # 3. 配置 Nginx 反向代理（可选）
 # 编辑 /etc/nginx/sites-available/default
-# 添加反向代理配置指向 localhost:3000
+# 添加反向代理配置指向 localhost:3030
 ```
 
 ## 🤝 贡献
