@@ -1,24 +1,40 @@
-<a id="personal-portfolio-website"></a>
+<style>
+.lang-switch { display: none; }
+#content-zh { display: none; }
+#lang-en:checked ~ #content-en { display: block; }
+#lang-en:checked ~ #content-zh { display: none; }
+#lang-en:checked ~ div label[for="lang-en"] { background: #0366d6; color: white; border-color: #0366d6; }
+#lang-en:checked ~ div label[for="lang-zh"] { background: #f5f5f5; color: #333; border-color: #ddd; }
+#lang-zh:checked ~ #content-en { display: none; }
+#lang-zh:checked ~ #content-zh { display: block; }
+#lang-zh:checked ~ div label[for="lang-zh"] { background: #0366d6; color: white; border-color: #0366d6; }
+#lang-zh:checked ~ div label[for="lang-en"] { background: #f5f5f5; color: #333; border-color: #ddd; }
+</style>
+
+<input type="radio" id="lang-en" name="lang-switch" class="lang-switch" checked>
+<input type="radio" id="lang-zh" name="lang-switch" class="lang-switch">
+
+<div align="center">
+
+### 🌐 Language / 语言
+
+<label for="lang-en" style="display:inline-block;padding:8px 16px;margin:0 4px;cursor:pointer;border:2px solid #0366d6;border-radius:4px;background:#0366d6;color:white;">English</label>
+<label for="lang-zh" style="display:inline-block;padding:8px 16px;margin:0 4px;cursor:pointer;border:2px solid #ddd;border-radius:4px;background:#f5f5f5;color:#333;">中文</label>
+
+</div>
+
+<div id="content-en">
+
 # 🚀 Personal Portfolio Website
 
 <div align="center">
 
-[English](#personal-portfolio-website) | [中文](#个人作品集网站)
-
 A stunning, interactive personal portfolio website built with React + TypeScript + Framer Motion.
-
-</div>
-
-<div align="center">
 
 ### 📌 Version & Docker Pulls
 
 [![Version](https://img.shields.io/github/package-json/v/Besta0/blogkk?style=flat-square)](https://github.com/Besta0/blogkk)
 [![Docker Pulls](https://img.shields.io/docker/pulls/caleb333/blogkk?style=flat-square)](https://hub.docker.com/r/caleb333/blogkk)
-
-</div>
-
-<div align="center">
 
 [Live Demo](#) • [Documentation](#) • [Report Bug](https://github.com/Besta0/blogkk/issues) • [Request Feature](https://github.com/Besta0/blogkk/issues)
 
@@ -218,29 +234,20 @@ Made with ❤️ by [Caleb Tan](https://github.com/Besta0)
 
 </div>
 
----
+</div>
 
-<a id="个人作品集网站"></a>
+<div id="content-zh">
+
 # 🇨🇳 个人作品集网站
 
 <div align="center">
 
-[English](#personal-portfolio-website) | **中文**
-
 一个炫酷、交互性强的个人作品集网站，使用 React + TypeScript + Framer Motion 构建。
-
-</div>
-
-<div align="center">
 
 ### 📌 版本 & Docker 下载次数
 
 [![版本](https://img.shields.io/github/package-json/v/Besta0/blogkk?style=flat-square)](https://github.com/Besta0/blogkk)
 [![Docker 下载次数](https://img.shields.io/docker/pulls/caleb333/blogkk?style=flat-square)](https://hub.docker.com/r/caleb333/blogkk)
-
-</div>
-
-<div align="center">
 
 [在线演示](#) • [文档](#) • [报告问题](https://github.com/Besta0/blogkk/issues) • [功能建议](https://github.com/Besta0/blogkk/issues)
 
@@ -437,5 +444,7 @@ docker-compose up -d
 ⭐ 如果这个项目对你有帮助，请给个 Star！
 
 由 [Caleb Tan](https://github.com/Besta0) 用 ❤️ 制作
+
+</div>
 
 </div>
