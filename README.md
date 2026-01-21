@@ -1,8 +1,9 @@
+<a id="personal-portfolio-website"></a>
 # 🚀 Personal Portfolio Website
 
 <div align="center">
 
-**English** | [中文](#-个人作品集网站)
+[English](#personal-portfolio-website) | [中文](#个人作品集网站)
 
 A stunning, interactive personal portfolio website built with React + TypeScript + Framer Motion.
 
@@ -219,11 +220,12 @@ Made with ❤️ by [Caleb Tan](https://github.com/Besta0)
 
 ---
 
+<a id="个人作品集网站"></a>
 # 🇨🇳 个人作品集网站
 
 <div align="center">
 
-[English](#-personal-portfolio-website) | **中文**
+[English](#personal-portfolio-website) | **中文**
 
 一个炫酷、交互性强的个人作品集网站，使用 React + TypeScript + Framer Motion 构建。
 
