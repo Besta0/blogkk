@@ -1,12 +1,121 @@
 import { motion } from 'framer-motion'
-import { useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useMemo } from 'react'
 import { Code, Palette, Rocket, Zap } from 'lucide-react'
+import { useProfile } from '../api/hooks/useProfile'
+import type { Experience } from '../api/types'
+
+// Skill color palette for dynamic assignment
+const SKILL_COLORS = [
+  'from-blue-500 to-cyan-500',
+  'from-blue-600 to-blue-400',
+  'from-green-500 to-emerald-500',
+  'from-purple-500 to-pink-500',
+  'from-orange-500 to-red-500',
+  'from-pink-500 to-rose-500',
+  'from-indigo-500 to-purple-500',
+  'from-teal-500 to-green-500',
+]
+
+// Loading skeleton component
+const AboutSkeleton = () => (
+  <section
+    id="about"
+    className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900 relative overflow-hidden"
+  >
+    <div className="max-w-7xl mx-auto animate-pulse">
+      {/* Title skeleton */}
+      <div className="text-center mb-16">
+        <div className="h-12 w-48 bg-gray-200 dark:bg-gray-800 rounded-lg mx-auto mb-4" />
+        <div className="h-6 w-96 max-w-full bg-gray-200 dark:bg-gray-800 rounded mx-auto" />
+      </div>
+
+      {/* Features skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="p-6 rounded-2xl glass">
+            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-lg mb-4" />
+            <div className="h-6 w-24 bg-gray-200 dark:bg-gray-800 rounded mb-2" />
+            <div className="h-4 w-full bg-gray-200 dark:bg-gray-800 rounded" />
+          </div>
+        ))}
+      </div>
+
+      {/* Skills skeleton */}
+      <div className="mb-20">
+        <div className="h-8 w-24 bg-gray-200 dark:bg-gray-800 rounded mx-auto mb-8" />
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i}>
+              <div className="flex justify-between mb-2">
+                <div className="h-5 w-24 bg-gray-200 dark:bg-gray-800 rounded" />
+                <div className="h-5 w-12 bg-gray-200 dark:bg-gray-800 rounded" />
+              </div>
+              <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Timeline skeleton */}
+      <div>
+        <div className="h-8 w-24 bg-gray-200 dark:bg-gray-800 rounded mx-auto mb-8" />
+        <div className="space-y-12">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="ml-16 md:ml-0 md:w-5/12">
+              <div className="p-6 rounded-2xl glass">
+                <div className="h-5 w-16 bg-gray-200 dark:bg-gray-800 rounded mb-2" />
+                <div className="h-6 w-32 bg-gray-200 dark:bg-gray-800 rounded mb-2" />
+                <div className="h-4 w-full bg-gray-200 dark:bg-gray-800 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+)
+
+// Helper function to convert Experience to timeline format
+const experienceToTimeline = (experience: Experience[]) => {
+  return experience
+    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+    .map((exp) => ({
+      year: new Date(exp.startDate).getFullYear().toString(),
+      title: exp.position,
+      description: exp.description,
+    }))
+}
+
+// Helper function to convert skills array to display format with levels and colors
+const skillsToDisplay = (skills: string[]) => {
+  // Assign decreasing levels starting from 90, with minimum of 60
+  return skills.slice(0, 8).map((name, index) => ({
+    name,
+    level: Math.max(90 - index * 5, 60),
+    color: SKILL_COLORS[index % SKILL_COLORS.length],
+  }))
+}
 
 const AboutSection = () => {
-  const ref = useRef(null)
-  // 每次进入/离开视口都触发（支持反复滚动时重复播放动画）
-  const isInView = useInView(ref, { once: false, margin: '-100px' })
+  const { data: profile, isLoading } = useProfile()
+  
+  // 数据加载完成后始终显示内容
+  const shouldShow = !isLoading
+
+  // Transform API data to display format
+  const skills = useMemo(() => {
+    if (profile?.skills && profile.skills.length > 0) {
+      return skillsToDisplay(profile.skills)
+    }
+    return []
+  }, [profile?.skills])
+
+  const timeline = useMemo(() => {
+    if (profile?.experience && profile.experience.length > 0) {
+      return experienceToTimeline(profile.experience)
+    }
+    return []
+  }, [profile?.experience])
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -30,59 +139,38 @@ const AboutSection = () => {
     },
   }
 
-  const skills = [
-    { name: 'React', level: 90, color: 'from-blue-500 to-cyan-500' },
-    { name: 'TypeScript', level: 85, color: 'from-blue-600 to-blue-400' },
-    { name: 'Node.js', level: 80, color: 'from-green-500 to-emerald-500' },
-    { name: 'UI/UX Design', level: 75, color: 'from-purple-500 to-pink-500' },
-    { name: 'Three.js', level: 70, color: 'from-orange-500 to-red-500' },
-    { name: 'Framer Motion', level: 85, color: 'from-pink-500 to-rose-500' },
-  ]
-
-  const timeline = [
-    {
-      year: '2024',
-      title: '高级前端工程师',
-      description: '专注于创建交互式 Web 体验和性能优化',
-    },
-    {
-      year: '2022',
-      title: '全栈开发者',
-      description: '开始探索 3D Web 开发和创意编程',
-    },
-    {
-      year: '2020',
-      title: '前端开发者',
-      description: '开始前端开发之旅，专注于 React 生态系统',
-    },
-  ]
-
   const features = [
-    { icon: Code, title: '代码质量', description: '编写清晰、可维护的代码' },
-    { icon: Palette, title: '设计思维', description: '注重用户体验和视觉设计' },
-    { icon: Rocket, title: '性能优化', description: '追求极致的加载速度和流畅度' },
-    { icon: Zap, title: '创新精神', description: '不断探索新技术和创意方案' },
+    { icon: Code, title: 'Code Quality', description: 'Writing clean, maintainable code' },
+    { icon: Palette, title: 'Design Thinking', description: 'Focus on UX and visual design' },
+    { icon: Rocket, title: 'Performance', description: 'Optimizing for speed and smoothness' },
+    { icon: Zap, title: 'Innovation', description: 'Exploring new technologies and ideas' },
   ]
+
+  // Show loading skeleton
+  if (isLoading) {
+    return <AboutSkeleton />
+  }
+
+  // Always use default data when there's an error - don't show error page
 
   return (
     <section
       id="about"
-      ref={ref}
       className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900 relative overflow-hidden"
     >
       <div className="max-w-7xl mx-auto">
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
+          animate={shouldShow ? 'visible' : 'hidden'}
         >
-          {/* 标题 */}
+          {/* Title */}
           <motion.div variants={itemVariants} className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="text-gradient">关于我</span>
+              <span className="text-gradient">About Me</span>
             </h2>
             <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-              热爱创造，专注于打造令人惊艳的数字体验
+              Passionate about creating amazing digital experiences
             </p>
           </motion.div>
 
@@ -97,7 +185,7 @@ const AboutSection = () => {
                 className="p-6 rounded-2xl glass hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 group"
                 whileHover={{ scale: 1.05, y: -5 }}
                 initial={{ opacity: 0, y: 20 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                animate={shouldShow ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: index * 0.1 }}
               >
                 <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -109,16 +197,16 @@ const AboutSection = () => {
             ))}
           </motion.div>
 
-          {/* 技能 */}
+          {/* Skills */}
           <motion.div variants={itemVariants} className="mb-20">
-            <h3 className="text-3xl font-bold mb-8 text-center">技能</h3>
+            <h3 className="text-3xl font-bold mb-8 text-center">Skills</h3>
             <div className="space-y-4">
               {skills.map((skill, index) => (
                 <motion.div
                   key={skill.name}
                   className="group"
                   initial={{ opacity: 0, x: -50 }}
-                animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
+                  animate={shouldShow ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
                   transition={{ delay: index * 0.1 }}
                 >
                   <div className="flex justify-between mb-2">
@@ -131,7 +219,7 @@ const AboutSection = () => {
                     <motion.div
                       className={`h-full bg-gradient-to-r ${skill.color} rounded-full`}
                       initial={{ width: 0 }}
-                      animate={isInView ? { width: `${skill.level}%` } : { width: 0 }}
+                      animate={shouldShow ? { width: `${skill.level}%` } : { width: 0 }}
                       transition={{ duration: 1, delay: index * 0.1 + 0.3 }}
                     />
                   </div>
@@ -140,9 +228,9 @@ const AboutSection = () => {
             </div>
           </motion.div>
 
-          {/* 时间线 */}
+          {/* Timeline */}
           <motion.div variants={itemVariants}>
-            <h3 className="text-3xl font-bold mb-8 text-center">经历</h3>
+            <h3 className="text-3xl font-bold mb-8 text-center">Experience</h3>
             <div className="relative">
               {/* 时间线 */}
               <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary-500 via-accent-500 to-primary-500" />
@@ -156,7 +244,7 @@ const AboutSection = () => {
                     }`}
                     initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
                     animate={
-                      isInView
+                      shouldShow
                         ? { opacity: 1, x: 0 }
                         : { opacity: 0, x: index % 2 === 0 ? -50 : 50 }
                     }

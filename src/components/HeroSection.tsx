@@ -1,9 +1,60 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Github, Mail, Terminal } from 'lucide-react'
+import { ChevronDown, Github, Mail, Linkedin, Twitter, Globe, Terminal } from 'lucide-react'
 import MagneticButton from './MagneticButton'
 import { useEffect, useMemo, useState } from 'react'
+import { useProfile } from '../api/hooks/useProfile'
+
+// Loading skeleton component
+const HeroSkeleton = () => (
+  <section id="home" className="min-h-screen relative overflow-hidden pt-20">
+    <div className="absolute inset-0 bg-white dark:bg-gray-950" />
+    <div className="absolute inset-0 bg-[radial-gradient(900px_circle_at_20%_20%,rgba(14,165,233,0.14),transparent_60%),radial-gradient(900px_circle_at_80%_30%,rgba(217,70,239,0.10),transparent_60%)] animate-gradient [background-size:200%_200%]" />
+    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808010_1px,transparent_1px),linear-gradient(to_bottom,#80808010_1px,transparent_1px)] bg-[size:28px_28px]" />
+    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-gray-950" />
+
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="min-h-[calc(100vh-5rem)] grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <div className="lg:col-span-7 animate-pulse">
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded-full" />
+          <div className="mt-6 h-16 w-3/4 bg-gray-200 dark:bg-gray-800 rounded-lg" />
+          <div className="mt-4 h-16 w-1/2 bg-gray-200 dark:bg-gray-800 rounded-lg" />
+          <div className="mt-6 h-6 w-full max-w-2xl bg-gray-200 dark:bg-gray-800 rounded" />
+          <div className="mt-2 h-6 w-3/4 max-w-2xl bg-gray-200 dark:bg-gray-800 rounded" />
+          <div className="mt-8 flex gap-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-8 w-20 bg-gray-200 dark:bg-gray-800 rounded-full" />
+            ))}
+          </div>
+        </div>
+        <div className="lg:col-span-5 animate-pulse">
+          <div className="h-64 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+)
 
 const HeroSection = () => {
+  const profileQuery = useProfile()
+  
+  // Debug logging
+  console.log('Profile query result:', profileQuery)
+  
+  if (!profileQuery) {
+    console.error('useProfile returned undefined - React Query not properly initialized')
+    return <div>Error: React Query not initialized</div>
+  }
+  
+  const { data: profile, isLoading } = profileQuery
+
+  // Use API data - show loading if no data
+  const profileData = profile
+
   const roles = useMemo(
     () => ['Full-stack Developer', 'System Builder', 'UX-minded Engineer', 'Performance Optimizer'],
     [],
@@ -47,6 +98,35 @@ const HeroSection = () => {
     }
   }
 
+  // Build social links array from profile data
+  const socialLinks = useMemo(() => {
+    const links: { icon: typeof Github; href: string; label: string }[] = []
+    const social = profileData?.social
+
+    if (social?.github) {
+      links.push({ icon: Github, href: social.github, label: 'GitHub' })
+    }
+    if (social?.linkedin) {
+      links.push({ icon: Linkedin, href: social.linkedin, label: 'LinkedIn' })
+    }
+    if (social?.twitter) {
+      links.push({ icon: Twitter, href: social.twitter, label: 'Twitter' })
+    }
+    if (social?.email) {
+      links.push({ icon: Mail, href: `mailto:${social.email}`, label: 'Email' })
+    }
+    if (social?.website) {
+      links.push({ icon: Globe, href: social.website, label: 'Website' })
+    }
+
+    return links
+  }, [profileData?.social])
+
+  // Show loading skeleton
+  if (isLoading || !profileData) {
+    return <HeroSkeleton />
+  }
+
   return (
     <section id="home" className="min-h-screen relative overflow-hidden pt-20">
       {/* 极简科技背景：克制渐变 + 网格 */}
@@ -70,9 +150,9 @@ const HeroSection = () => {
             </motion.div>
 
             <motion.h1 variants={itemVariants} className="mt-6 text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-              <span className="text-gray-900 dark:text-white">全栈工程师</span>
+              <span className="text-gray-900 dark:text-white">{profileData.name}</span>
               <br />
-              <span className="text-gradient">Build. Ship. Scale.</span>
+              <span className="text-gradient">{profileData.title}</span>
             </motion.h1>
 
             <motion.div variants={itemVariants} className="mt-5 h-8">
@@ -91,16 +171,16 @@ const HeroSection = () => {
             </motion.div>
 
             <motion.p variants={itemVariants} className="mt-6 text-lg text-gray-600 dark:text-gray-400 max-w-2xl">
-              我专注于把产品从 0 到 1 做出来：前端体验、后端接口、部署上线与性能优化，保持极简、稳定、可扩展。
+              {profileData.bio}
             </motion.p>
 
             <motion.div variants={itemVariants} className="mt-8 flex flex-wrap gap-3">
-              {['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Docker', 'CI/CD'].map((t) => (
+              {profileData.skills.slice(0, 8).map((skill) => (
                 <span
-                  key={t}
+                  key={skill}
                   className="px-3 py-1.5 rounded-full text-sm glass text-gray-800 dark:text-gray-200"
                 >
-                  {t}
+                  {skill}
                 </span>
               ))}
             </motion.div>
@@ -113,11 +193,12 @@ const HeroSection = () => {
                     e.preventDefault()
                     document.querySelector('#projects')?.scrollIntoView({ behavior: 'smooth' })
                   }}
-                  className="px-7 py-3.5 rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-950 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  whileHover={{ scale: 1.03 }}
+                  className="inline-block px-7 py-3.5 rounded-xl font-semibold shadow-lg transition-all duration-300"
+                  style={{ backgroundColor: '#1f2937', color: '#ffffff' }}
+                  whileHover={{ scale: 1.03, backgroundColor: '#374151' }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  查看作品
+                  View Projects
                 </motion.a>
               </MagneticButton>
 
@@ -128,20 +209,18 @@ const HeroSection = () => {
                     e.preventDefault()
                     document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' })
                   }}
-                  className="px-7 py-3.5 rounded-xl glass font-semibold text-gray-900 dark:text-white hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300"
-                  whileHover={{ scale: 1.03 }}
+                  className="inline-block px-7 py-3.5 rounded-xl font-semibold shadow-lg transition-all duration-300"
+                  style={{ backgroundColor: '#1f2937', color: '#ffffff' }}
+                  whileHover={{ scale: 1.03, backgroundColor: '#374151' }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  联系我
+                  Contact Me
                 </motion.a>
               </MagneticButton>
             </motion.div>
 
             <motion.div variants={itemVariants} className="mt-10 flex items-center gap-5">
-              {[
-                { icon: Github, href: 'https://github.com', label: 'GitHub' },
-                { icon: Mail, href: 'mailto:your@email.com', label: 'Email' },
-              ].map((social) => (
+              {socialLinks.map((social) => (
                 <motion.a
                   key={social.label}
                   href={social.href}

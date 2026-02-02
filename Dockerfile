@@ -1,31 +1,46 @@
-# 构建阶段
+# Frontend Dockerfile
+# Multi-stage build for React + Vite + TypeScript
+
+# ===========================================
+# Build Stage
+# ===========================================
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# 复制 package 文件
+# Build argument for API URL
+ARG VITE_API_BASE_URL=http://localhost:3000
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
+# Copy package files
 COPY package.json package-lock.json* ./
 
-# 安装依赖
+# Install dependencies
 RUN npm ci
 
-# 复制源代码
+# Copy source code
 COPY . .
 
-# 构建应用
+# Build the application
 RUN npm run build
 
-# 生产阶段
-FROM nginx:alpine
+# ===========================================
+# Production Stage
+# ===========================================
+FROM nginx:alpine AS production
 
-# 复制构建产物到 nginx
+# Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# 复制 nginx 配置
+# Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# 暴露端口
+# Expose port
 EXPOSE 80
 
-# 启动 nginx
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost/health || exit 1
+
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

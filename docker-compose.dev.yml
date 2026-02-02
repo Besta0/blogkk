@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # MySQL - for structured data
+  mysql:
+    image: mysql:8.0
+    container_name: portfolio-mysql-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: portfolio_dev
+      MYSQL_USER: portfolio
+      MYSQL_PASSWORD: portfolio123
+    ports:
+      - "3308:3306"  # 使用 3308 避免与生产环境 3307 冲突
+    volumes:
+      - mysql_data_dev:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB - for unstructured data (analytics, logs, files)
+  mongodb:
+    image: mongo:7.0
+    container_name: portfolio-mongodb-dev
+    restart: unless-stopped
+    ports:
+      - "27019:27017"  # 使用 27019 避免与生产环境 27018 冲突
+    volumes:
+      - mongodb_data_dev:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API with hot reload
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: portfolio-backend-dev
+    restart: unless-stopped
+    ports:
+      - "3010:3010"  # 开发环境后端端口
+    environment:
+      - NODE_ENV=development
+      - PORT=3010
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=portfolio
+      - DB_PASSWORD=portfolio123
+      - DB_NAME=portfolio_dev
+      - MONGODB_URI=mongodb://mongodb:27017/portfolio_analytics_dev
+      - JWT_SECRET=dev-secret-key-change-in-production
+      - JWT_EXPIRES_IN=1h
+      - FRONTEND_URL=http://localhost:5050
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/package.json:/app/package.json
+      - /app/node_modules
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    command: npm run dev
+
+  # Frontend with Vite hot reload
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: portfolio-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "5050:5050"  # 开发环境前端端口
+    environment:
+      - NODE_ENV=development
+      - VITE_API_BASE_URL=http://localhost:3010
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+      - ./main.html:/app/main.html
+      - ./admin.html:/app/admin.html
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tsconfig.node.json:/app/tsconfig.node.json
+      - ./tailwind.config.js:/app/tailwind.config.js
+      - ./postcss.config.js:/app/postcss.config.js
+      - ./package.json:/app/package.json
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  mysql_data_dev:
+  mongodb_data_dev:
+
+

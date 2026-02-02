@@ -1,19 +1,124 @@
-version: '3.8'
-
 services:
-  web:
+  # MySQL Database - for structured data
+  mysql:
+    image: mysql:8
+    container_name: portfolio-mysql
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-rootpassword}
+      - MYSQL_DATABASE=${DB_NAME:-portfolio}
+      - MYSQL_USER=${DB_USER:-portfolio}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-portfoliopassword}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+
+  # MongoDB Database - for unstructured data (analytics, logs, files)
+  mongodb:
+    image: mongo:7.0
+    container_name: portfolio-mongodb
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=${MONGODB_NAME:-portfolio_analytics}
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+
+  # Frontend - React Application
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: personal-website
+      args:
+        - VITE_API_BASE_URL=
+    container_name: portfolio-frontend
     ports:
-      - "3030:80"
+      - "${FRONTEND_PORT:-5060}:80"  # 生产环境前端端口
     restart: unless-stopped
     environment:
       - NODE_ENV=production
+    depends_on:
+      backend:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - portfolio-network
+
+  # Backend - Node.js API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: portfolio-backend
+    ports:
+      - "${BACKEND_PORT:-3020}:3020"  # 生产环境后端端口
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3020
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=${DB_USER:-portfolio}
+      - DB_PASSWORD=${DB_PASSWORD:-portfoliopassword}
+      - DB_NAME=${DB_NAME:-portfolio}
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/portfolio_analytics}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-1h}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-7d}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5060}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - FROM_EMAIL=${FROM_EMAIL}
+      - FROM_NAME=${FROM_NAME}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3020/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - portfolio-network
+
+networks:
+  portfolio-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  mongodb_data:

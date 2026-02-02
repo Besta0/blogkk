@@ -23,6 +23,18 @@ dist-ssr
 *.sln
 *.sw?
 
+# Kiro AI Assistant files
+.kiro/
+
+# Local scripts and instructions (not for GitHub)
+commit-and-push.sh
+update-version.sh
+HOW_TO_ADD_SCREENSHOTS.md
+UPLOAD_INSTRUCTIONS.md
+QUICK_UPLOAD.txt
+VERSION_INFO.txt
+FINAL_UPLOAD_GUIDE.txt
+
 # Environment variables
 .env
 .env.local

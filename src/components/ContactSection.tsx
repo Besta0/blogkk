@@ -1,15 +1,22 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef, useState } from 'react'
-import { Mail, Send, Github, Linkedin, Twitter, MessageCircle } from 'lucide-react'
+import { Mail, Send, Github, Linkedin, Twitter, MessageCircle, CheckCircle, XCircle } from 'lucide-react'
 import MagneticButton from './MagneticButton'
+import NewsletterSubscribe from './NewsletterSubscribe'
+import { useSubmitContact } from '../api/hooks/useContact'
+
+type SubmitStatus = 'idle' | 'success' | 'error'
 
 const ContactSection = () => {
   const ref = useRef(null)
-  // 每次进入/离开视口都触发（支持反复滚动时重复播放动画）
-  const isInView = useInView(ref, { once: false, margin: '-100px' })
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' })
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  // 使用 once: true 和 amount: 0.1 确保组件一进入视口就触发动画
+  const isInView = useInView(ref, { once: true, amount: 0.1 })
+  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' })
+  const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  const submitContact = useSubmitContact()
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -35,14 +42,23 @@ const ContactSection = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
-    
-    // 这里可以集成实际的邮件服务或 API
-    setTimeout(() => {
-      setIsSubmitting(false)
-      alert('消息已发送！我会尽快回复你。')
-      setFormData({ name: '', email: '', message: '' })
-    }, 1000)
+    setSubmitStatus('idle')
+    setErrorMessage('')
+
+    submitContact.mutate(formData, {
+      onSuccess: () => {
+        setSubmitStatus('success')
+        setFormData({ name: '', email: '', subject: '', message: '' })
+        // Reset status after 5 seconds
+        setTimeout(() => setSubmitStatus('idle'), 5000)
+      },
+      onError: (error: Error) => {
+        setSubmitStatus('error')
+        setErrorMessage(error.message || 'Failed to send, please try again later')
+        // Reset status after 5 seconds
+        setTimeout(() => setSubmitStatus('idle'), 5000)
+      },
+    })
   }
 
   const socialLinks = [
@@ -67,10 +83,10 @@ const ContactSection = () => {
           {/* 标题 */}
           <motion.div variants={itemVariants} className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="text-gradient">联系我</span>
+              <span className="text-gradient">Contact Me</span>
             </h2>
             <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-              有项目想法或想要合作？随时联系我，让我们一起创造精彩！
+              有项目想法或想要合作？随时Contact Me，让我们一起创造精彩！
             </p>
           </motion.div>
 
@@ -84,10 +100,11 @@ const ContactSection = () => {
                 >
                   <input
                     type="text"
-                    placeholder="你的名字"
+                    placeholder="Your Name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
+                    maxLength={100}
                     className="w-full px-4 py-3 rounded-lg glass border border-white/20 dark:border-white/10 bg-white/10 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </motion.div>
@@ -98,7 +115,7 @@ const ContactSection = () => {
                 >
                   <input
                     type="email"
-                    placeholder="你的邮箱"
+                    placeholder="Your Email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
@@ -110,25 +127,64 @@ const ContactSection = () => {
                   whileFocus={{ scale: 1.02 }}
                   className="relative"
                 >
+                  <input
+                    type="text"
+                    placeholder="Subject"
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    required
+                    maxLength={200}
+                    className="w-full px-4 py-3 rounded-lg glass border border-white/20 dark:border-white/10 bg-white/10 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  />
+                </motion.div>
+
+                <motion.div
+                  whileFocus={{ scale: 1.02 }}
+                  className="relative"
+                >
                   <textarea
-                    placeholder="你的消息"
+                    placeholder="Your Message"
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     required
                     rows={6}
+                    maxLength={5000}
                     className="w-full px-4 py-3 rounded-lg glass border border-white/20 dark:border-white/10 bg-white/10 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all resize-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </motion.div>
 
+                {/* Status feedback */}
+                {submitStatus === 'success' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 p-4 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                  >
+                    <CheckCircle className="w-5 h-5" />
+                    <span>Message sent! I will get back to you soon.</span>
+                  </motion.div>
+                )}
+
+                {submitStatus === 'error' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 p-4 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                  >
+                    <XCircle className="w-5 h-5" />
+                    <span>{errorMessage}</span>
+                  </motion.div>
+                )}
+
                 <MagneticButton>
                   <motion.button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={submitContact.isPending}
                     className="w-full px-6 py-4 rounded-lg bg-gradient-to-r from-primary-500 to-accent-500 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {isSubmitting ? (
+                    {submitContact.isPending ? (
                       <>
                         <motion.div
                           animate={{ rotate: 360 }}
@@ -136,12 +192,12 @@ const ContactSection = () => {
                         >
                           <Send className="w-5 h-5" />
                         </motion.div>
-                        <span>发送中...</span>
+                        <span>Sending...</span>
                       </>
                     ) : (
                       <>
                         <Send className="w-5 h-5" />
-                        <span>发送消息</span>
+                        <span>Send Message</span>
                       </>
                     )}
                   </motion.button>
@@ -153,10 +209,10 @@ const ContactSection = () => {
             <motion.div variants={itemVariants} className="space-y-8">
               <div>
                 <h3 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-                  通过社交媒体联系
+                  Connect on Social Media
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  也可以通过以下方式找到我，期待与你交流！
+                  You can also find me on these platforms. Looking forward to connecting!
                 </p>
               </div>
 
@@ -193,13 +249,22 @@ const ContactSection = () => {
                   <MessageCircle className="w-6 h-6 text-primary-500 mt-1" />
                   <div>
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                      快速响应
+                      Quick Response
                     </h4>
                     <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      我通常会在 24 小时内回复所有消息。如果是紧急项目，请通过邮件联系。
+                      I usually respond to all messages within 24 hours. For urgent projects, please contact me via email.
                     </p>
                   </div>
                 </div>
+              </motion.div>
+
+              {/* Newsletter Subscription */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.5 }}
+              >
+                <NewsletterSubscribe />
               </motion.div>
             </motion.div>
           </div>

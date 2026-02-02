@@ -1,0 +1,22 @@
+# Backend Development Dockerfile
+# Includes hot reload support with nodemon
+
+FROM node:20-alpine
+
+# Install build dependencies for native modules and MySQL client
+RUN apk add --no-cache python3 make g++ mysql-client
+
+WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json* ./
+RUN npm install --legacy-peer-deps
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Start with nodemon for hot reload
+CMD ["npm", "run", "dev"]

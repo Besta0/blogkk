@@ -5,9 +5,10 @@ import { Moon, Sun, Menu, X } from 'lucide-react'
 interface NavbarProps {
   theme: 'light' | 'dark'
   toggleTheme: () => void
+  onHomeClick?: () => void
 }
 
-const Navbar = ({ theme, toggleTheme }: NavbarProps) => {
+const Navbar = ({ theme, toggleTheme, onHomeClick }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { scrollY } = useScroll()
@@ -17,13 +18,19 @@ const Navbar = ({ theme, toggleTheme }: NavbarProps) => {
   })
 
   const navItems = [
-    { name: '首页', href: '#home' },
-    { name: '关于', href: '#about' },
-    { name: '项目', href: '#projects' },
-    { name: '联系', href: '#contact' },
+    { name: 'Home', href: '#home' },
+    { name: 'About', href: '#about' },
+    { name: 'Projects', href: '#projects' },
+    { name: 'Blog', href: '#blog' },
+    { name: 'Contact', href: '#contact' },
   ]
 
   const scrollToSection = (href: string) => {
+    // If clicking Home, call the onHomeClick callback first
+    if (href === '#home' && onHomeClick) {
+      onHomeClick()
+    }
+    
     const element = document.querySelector(href)
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' })
@@ -83,7 +90,7 @@ const Navbar = ({ theme, toggleTheme }: NavbarProps) => {
               whileTap={{ scale: 0.9 }}
               onClick={toggleTheme}
               className="p-2 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
-              aria-label="切换主题"
+              aria-label="Toggle theme"
             >
               {theme === 'dark' ? (
                 <Sun className="w-5 h-5 text-yellow-500" />
@@ -95,7 +102,7 @@ const Navbar = ({ theme, toggleTheme }: NavbarProps) => {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden p-2 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
-              aria-label="菜单"
+              aria-label="Menu"
             >
               {isMobileMenuOpen ? (
                 <X className="w-5 h-5" />
