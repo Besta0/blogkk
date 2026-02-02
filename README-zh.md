@@ -19,24 +19,31 @@
 
 <div align="center">
 
+> **提示**: 将截图添加到 `screenshots/` 文件夹后，这里将显示应用界面。
+
 ### 🏠 首页
 ![首页](screenshots/home.png)
+
 *现代化的主页设计，带有动画渐变和交互元素*
 
 ### 👤 关于页面
 ![关于页面](screenshots/about.png)
+
 *技能展示，带有进度条和经验时间线*
 
 ### 💼 项目展示
 ![项目展示](screenshots/projects.png)
+
 *精选项目展示，支持筛选和详细查看*
 
 ### 📝 博客
 ![博客](screenshots/blog.png)
+
 *技术博客，支持 Markdown 和标签筛选*
 
 ### 📧 联系方式
 ![联系页面](screenshots/contact.png)
+
 *联系表单，集成社交媒体链接*
 
 </div>

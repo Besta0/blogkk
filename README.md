@@ -19,24 +19,31 @@ A modern, full-stack personal portfolio website built with React + TypeScript + 
 
 <div align="center">
 
+> **Note**: Screenshots will be displayed here once added to the `screenshots/` folder.
+
 ### 🏠 Home Page
 ![Home Page](screenshots/home.png)
+
 *Modern hero section with animated gradients and interactive elements*
 
 ### 👤 About Section
 ![About Page](screenshots/about.png)
+
 *Skills showcase with progress bars and experience timeline*
 
 ### 💼 Projects
 ![Projects](screenshots/projects.png)
+
 *Featured projects with filtering and detailed views*
 
 ### 📝 Blog
 ![Blog](screenshots/blog.png)
+
 *Tech blog with Markdown support and tag filtering*
 
 ### 📧 Contact
 ![Contact](screenshots/contact.png)
+
 *Contact form with social media integration*
 
 </div>
