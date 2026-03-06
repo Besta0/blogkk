@@ -20,22 +20,40 @@ const Navbar = ({ theme, toggleTheme, onHomeClick }: NavbarProps) => {
   const navItems = [
     { name: 'Home', href: '#home' },
     { name: 'About', href: '#about' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'Blog', href: '#blog' },
+    { name: 'Projects', href: '/projects' },
+    { name: 'Blog', href: '/blog' },
     { name: 'Contact', href: '#contact' },
   ]
 
   const scrollToSection = (href: string) => {
-    // If clicking Home, call the onHomeClick callback first
+    // Navigate to dedicated pages via History API
+    if (href === '/blog' || href === '/projects') {
+      window.history.pushState({}, '', href)
+      window.dispatchEvent(new PopStateEvent('popstate'))
+      setIsMobileMenuOpen(false)
+      return
+    }
+
     if (href === '#home' && onHomeClick) {
       onHomeClick()
     }
-    
-    const element = document.querySelector(href)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
-      setIsMobileMenuOpen(false)
+
+    // If currently on a sub-page, go back to home first
+    const currentPath = window.location.pathname
+    if (currentPath !== '/' && currentPath !== '/index.html') {
+      window.history.pushState({}, '', '/')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+      setTimeout(() => {
+        const element = document.querySelector(href)
+        if (element) element.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    } else {
+      const element = document.querySelector(href)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' })
+      }
     }
+    setIsMobileMenuOpen(false)
   }
 
   return (
@@ -49,7 +67,7 @@ const Navbar = ({ theme, toggleTheme, onHomeClick }: NavbarProps) => {
           : 'bg-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <motion.div

@@ -148,8 +148,8 @@ const BlogPost = ({ slug, post: initialPost, onBack }: BlogPostProps) => {
     }
   }, [])
 
-  // Use provided post or fetched post
-  const post = initialPost || fetchedPost
+  // Prefer full post from slug API when available (list APIs like recent don't include content)
+  const post = fetchedPost || initialPost
 
   if (isLoading && !initialPost) {
     return <BlogPostSkeleton />

@@ -1,50 +1,36 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { AnimatePresence } from 'framer-motion'
 import Navbar from './components/Navbar'
 import HeroSection from './components/HeroSection'
 import AboutSection from './components/AboutSection'
-import ProjectsSection from './components/ProjectsSection'
-import BlogSection from './components/BlogSection'
-import BlogPost from './components/BlogPost'
+import LatestBlogSection from './components/LatestBlogSection'
 import ContactSection from './components/ContactSection'
 import Footer from './components/Footer'
 import AdminDashboard from './admin'
 import OfflineIndicator from './components/OfflineIndicator'
 import type { BlogPost as BlogPostType } from './api/types'
 
-// 懒加载测试页面
 const TestPage = lazy(() => import('./pages/TestPage'))
+const BlogPage = lazy(() => import('./pages/BlogPage'))
+const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
+
+const getRoute = () => {
+  const pathname = window.location.pathname.toLowerCase()
+  const hash = window.location.hash.toLowerCase()
+  if (pathname === '/blog' || pathname.startsWith('/blog/')) return 'blog'
+  if (pathname === '/projects') return 'projects'
+  if (hash.includes('admin')) return 'admin'
+  if (hash.includes('test')) return 'test'
+  return 'main'
+}
 
 function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
-  const [selectedBlogPost, setSelectedBlogPost] = useState<BlogPostType | null>(null)
-  
-  // Initialize route state based on current hash
-  const [currentRoute, setCurrentRoute] = useState(() => {
-    const hash = window.location.hash.toLowerCase()
-    console.log('Initial hash:', hash)
-    if (hash.includes('admin')) return 'admin'
-    if (hash.includes('test')) return 'test'
-    return 'main'
-  })
+  const [currentRoute, setCurrentRoute] = useState(getRoute)
 
-  // Check for route on mount and hash change
   useEffect(() => {
     const checkRoute = () => {
-      const hash = window.location.hash.toLowerCase()
-      console.log('Current hash:', hash)
-      if (hash.includes('admin')) {
-        console.log('Routing to admin')
-        setCurrentRoute('admin')
-      } else if (hash.includes('test')) {
-        console.log('Routing to test')
-        setCurrentRoute('test')
-      } else {
-        console.log('Routing to main')
-        setCurrentRoute('main')
-        // Reset blog post selection when navigating to main
-        setSelectedBlogPost(null)
-      }
+      const route = getRoute()
+      setCurrentRoute(route)
     }
     
     checkRoute()
@@ -78,73 +64,71 @@ function App() {
     localStorage.setItem('theme', theme)
   }, [theme])
 
-
-  // Scroll to top when viewing a blog post
-  useEffect(() => {
-    if (selectedBlogPost) {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
-  }, [selectedBlogPost])
-
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark')
   }
 
   const handleHomeClick = () => {
-    setSelectedBlogPost(null)
-    // Also clear any hash in the URL
     window.location.hash = ''
   }
 
   const handleBlogPostClick = (post: BlogPostType) => {
-    setSelectedBlogPost(post)
+    // Navigate to blog page with the post slug
+    window.location.href = `/blog/${post.slug}`
   }
 
   const handleBackToBlog = () => {
-    setSelectedBlogPost(null)
+    window.location.href = '/blog'
   }
 
-  // Render based on current route
+  const pageFallback = (
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+    </div>
+  )
+
   if (currentRoute === 'admin') {
     return <AdminDashboard />
   }
 
   if (currentRoute === 'test') {
     return (
-      <Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-900">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        </div>
-      }>
+      <Suspense fallback={pageFallback}>
         <TestPage />
+      </Suspense>
+    )
+  }
+
+  if (currentRoute === 'blog') {
+    return (
+      <Suspense fallback={pageFallback}>
+        <BlogPage theme={theme} toggleTheme={toggleTheme} />
+      </Suspense>
+    )
+  }
+
+  if (currentRoute === 'projects') {
+    return (
+      <Suspense fallback={pageFallback}>
+        <ProjectsPage theme={theme} toggleTheme={toggleTheme} />
       </Suspense>
     )
   }
 
 
   return (
-      <div className="min-h-screen relative overflow-x-hidden">
-        <OfflineIndicator />
-        <Navbar theme={theme} toggleTheme={toggleTheme} onHomeClick={handleHomeClick} />
-        <AnimatePresence mode="wait">
-          {selectedBlogPost ? (
-            <BlogPost
-              key="blog-post"
-              post={selectedBlogPost}
-              onBack={handleBackToBlog}
-            />
-          ) : ( 
-            <>
-              <HeroSection />
-              <AboutSection />
-              <ProjectsSection />
-              <BlogSection onPostClick={handleBlogPostClick} />
-              <ContactSection />
-            </>
-          )}
-        </AnimatePresence>
-        <Footer />
-      </div>
+    <div className="min-h-screen relative overflow-x-hidden">
+      <OfflineIndicator />
+      <Navbar theme={theme} toggleTheme={toggleTheme} onHomeClick={handleHomeClick} />
+      <HeroSection />
+      <AboutSection />
+      <LatestBlogSection
+        onPostClick={handleBlogPostClick}
+        onViewAllClick={() => window.location.pathname = '/blog'}
+      />
+      <ContactSection />
+      <Footer />
+    </div>
 
     
 

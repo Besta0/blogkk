@@ -101,7 +101,8 @@ export default defineConfig({
   },
   server: { 
     port: process.env.NODE_ENV === 'development' ? 5050 : 5060,
-    host: true, // 允许外部访问
+    host: true,
+    historyApiFallback: true,
   },
   test: {
     globals: true,
